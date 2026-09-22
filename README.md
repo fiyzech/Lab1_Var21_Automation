@@ -54,8 +54,12 @@
 2. Відкрити `Calculator_Exam_CommandProject.sln` у Visual Studio 2022.
 3. **Test → Test Explorer → Run All**.
 
-Покриття коду з командного рядка:
+Покриття коду (HTML-звіт через [ReportGenerator](https://github.com/danielpalme/ReportGenerator)):
 
 ```
-dotnet test AnalizerFormatTests --collect "Code Coverage;Format=Cobertura"
+dotnet tool install --global dotnet-reportgenerator-globaltool   # один раз
+powershell -ExecutionPolicy Bypass -File coverage.ps1
 ```
+
+Звіт відкриється з `coverage-report\index.html`. Загальне покриття класу AnalaizerClass там близько 29 %,
+бо за варіантом тестується лише метод `Format()`. Його покриття видно в таблиці методів на сторінці класу: 98,7 %.
