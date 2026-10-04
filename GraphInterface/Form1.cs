@@ -16,224 +16,217 @@ namespace GraphInterface
     public partial class Form1 : Form
     {
         public static string expression = null;
-        int memory = 0;
-        string result = "0";
-        private bool nonNumberEntered = false;
-        int timercount = 0;
-        bool IstimeOut = false;
-        char sign = ' ';
+        int memory = 0;          // значення пам'яті (MR, M+, MC)
+        string result = "0";     // останній результат з поля Result
+
         public Form1()
         {
             InitializeComponent();
-        }
-        private void button1_Click(object sender, EventArgs e)
-        {
-            textBoxExpression.Text += "1";
-            IstimeOut = false;
-        }
-        private void button2_Click(object sender, EventArgs e)
-        {
-            textBoxExpression.Text += "2";
-            IstimeOut = false;
-        }
-        private void button3_Click(object sender, EventArgs e)
-        {
-            textBoxExpression.Text += "3";
-            IstimeOut = false;
-        }
-        private void button4_Click(object sender, EventArgs e)
-        {
-            textBoxExpression.Text += "4";
-            IstimeOut = false;
-        }
-        private void button5_Click(object sender, EventArgs e)
-        {
-            textBoxExpression.Text += "5";
-            IstimeOut = false;
-        }
-        private void button6_Click(object sender, EventArgs e)
-        {
-            textBoxExpression.Text += "6";
-            IstimeOut = false;
-        }
-        private void button7_Click(object sender, EventArgs e)
-        {
-            textBoxExpression.Text += "7";
-            IstimeOut = false;
-        }
-        private void button8_Click(object sender, EventArgs e)
-        {
-            textBoxExpression.Text += "8";
-            IstimeOut = false;
-        }
-        private void button9_Click(object sender, EventArgs e)
-        {
-            textBoxExpression.Text += "9";
-            IstimeOut = false;
-        }
-        private void button0_Click(object sender, EventArgs e)
-        {
-            textBoxExpression.Text += "0";
-            IstimeOut = false;
+
+            // Після натискання будь-якої кнопки фокус повертається в поле виразу
+            foreach (Button b in GetAllButtons(this))
+                b.Click += (s, ev) => FocusExpression();
         }
 
+        /// <summary>
+        /// Повертає всі кнопки форми, включно з кнопками всередині груп
+        /// </summary>
+        private static IEnumerable<Button> GetAllButtons(Control parent)
+        {
+            foreach (Control c in parent.Controls)
+            {
+                if (c is Button)
+                    yield return (Button)c;
+                foreach (Button inner in GetAllButtons(c))
+                    yield return inner;
+            }
+        }
+
+        /// <summary>
+        /// Фокус у поле виразу, курсор у кінець рядка
+        /// </summary>
+        private void FocusExpression()
+        {
+            textBoxExpression.Focus();
+            textBoxExpression.SelectionStart = textBoxExpression.Text.Length;
+        }
+
+        /// <summary>
+        /// Обробка клавіш до того, як їх отримає кнопка чи поле.
+        /// Пробіл ігнорується, Enter обчислює вираз.
+        /// </summary>
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.Space)
+                return true;
+
+            if (keyData == Keys.Enter)
+            {
+                buttonEqual_Click(this, EventArgs.Empty);
+                FocusExpression();
+                return true;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        // Кнопки цифр: дописують цифру в кінець виразу
+        private void button1_Click(object sender, EventArgs e) { textBoxExpression.Text += "1"; }
+        private void button2_Click(object sender, EventArgs e) { textBoxExpression.Text += "2"; }
+        private void button3_Click(object sender, EventArgs e) { textBoxExpression.Text += "3"; }
+        private void button4_Click(object sender, EventArgs e) { textBoxExpression.Text += "4"; }
+        private void button5_Click(object sender, EventArgs e) { textBoxExpression.Text += "5"; }
+        private void button6_Click(object sender, EventArgs e) { textBoxExpression.Text += "6"; }
+        private void button7_Click(object sender, EventArgs e) { textBoxExpression.Text += "7"; }
+        private void button8_Click(object sender, EventArgs e) { textBoxExpression.Text += "8"; }
+        private void button9_Click(object sender, EventArgs e) { textBoxExpression.Text += "9"; }
+        private void button0_Click(object sender, EventArgs e) { textBoxExpression.Text += "0"; }
+
+        /// <summary>
+        /// Кнопка +/-: змінює знак останнього числа у виразі
+        /// </summary>
         private void buttonABS_Click(object sender, EventArgs e)
         {
-            timer1.Interval = 1000;
-            timercount = 0;
-            timer1.Start();
-            int count = 0;
-            if (IstimeOut == false)
-            {
-                char temp = Convert.ToChar(textBoxExpression.Text.Substring(textBoxExpression.Text.Length - 1));
-                bool check = isNumber(temp);
-                long a = 0;
-                string numberToConvert = "";
+            string text = textBoxExpression.Text;
 
-                if (check == true)
-                {
-                    count++;
-                    numberToConvert += temp;
-                    while (check == true && textBoxExpression.Text.Length > count)
-                    {
-                        int from = textBoxExpression.Text.Length - count - 1;
-                        temp = textBoxExpression.Text.Substring(from).First();
-                        check = isNumber(temp);
-                        if (check == true)
-                        {
-                            numberToConvert = temp + numberToConvert;
-                            count++;
-                        }
-                        else sign = temp;
-                    }
-                    a = long.Parse(numberToConvert);
-                }
-                if (sign == '*' || sign == '/' || sign == '(' || sign == ' ')
-                {
-                    textBoxExpression.Text = textBoxExpression.Text.Substring(0, textBoxExpression.Text.Length - count) + "-" + a;
-                }
-                else if (sign == '+' || sign == 'p')
-                {
-                    textBoxExpression.Text = textBoxExpression.Text.Substring(0, textBoxExpression.Text.Length - count - 1) + "-" + a;
-                }
-                else if (sign == '-' || sign == 'm')
-                {
-                    textBoxExpression.Text = textBoxExpression.Text.Substring(0, textBoxExpression.Text.Length - count - 1) + "+" + a;
-                }
-                else if (sign == ')')
-                {
-                    textBoxExpression.Text = textBoxExpression.Text;
-                }
-            }
-            else
+            // Поле порожнє або в кінці не число: ставимо мінус перед майбутнім числом
+            if (text == "" || !isNumber(text[text.Length - 1]))
             {
                 textBoxExpression.Text += "-";
-                timer1.Stop();
-                timercount = 0;
-                IstimeOut = false;
+                return;
+            }
+
+            // Знаходимо початок останнього числа
+            int start = text.Length - 1;
+            while (start > 0 && isNumber(text[start - 1]))
+                start--;
+
+            string number = text.Substring(start);      // останнє число
+            string before = text.Substring(0, start);   // усе, що перед ним
+            char prev = before.Length > 0 ? before[before.Length - 1] : ' ';
+
+            if (prev == '-')
+            {
+                string beforeMinus = before.Substring(0, before.Length - 1);
+                char prevPrev = beforeMinus.Length > 0 ? beforeMinus[beforeMinus.Length - 1] : ' ';
+
+                if (beforeMinus == "" || prevPrev == '(' || "+-*/%".IndexOf(prevPrev) >= 0)
+                    textBoxExpression.Text = beforeMinus + number;        // унарний мінус: "-5" → "5"
+                else
+                    textBoxExpression.Text = beforeMinus + "+" + number;  // бінарний: "2-5" → "2+5"
+            }
+            else if (prev == '+')
+            {
+                textBoxExpression.Text = before.Substring(0, before.Length - 1) + "-" + number; // "2+5" → "2-5"
+            }
+            else if (prev != ')')
+            {
+                textBoxExpression.Text = before + "-" + number;           // "5" → "-5", "2*5" → "2*-5"
             }
         }
+
+        /// <summary>
+        /// Перевірка, чи є символ цифрою 0-9
+        /// </summary>
         private bool isNumber(char number)
         {
-            if (number == '0' || number == '1' || number == '2' || number == '3' ||
-           number == '4' || number == '5' || number == '6' || number == '7' || number == '8' || number == '9')
-                return true;
-            else return false;
-        }
-        private void buttonDiv_Click(object sender, EventArgs e)
-        {
-            textBoxExpression.Text += "/";
-        }
-        private void buttonMult_Click(object sender, EventArgs e)
-        {
-            textBoxExpression.Text += "*";
-        }
-        private void buttonSub_Click(object sender, EventArgs e)
-        {
-            textBoxExpression.Text += "-";
+            return number >= '0' && number <= '9';
         }
 
-        private void buttonAdd_Click(object sender, EventArgs e)
-        {
-            textBoxExpression.Text += "+";
-        }
+        // Кнопки операцій
+        private void buttonDiv_Click(object sender, EventArgs e) { textBoxExpression.Text += "/"; }
+        private void buttonMult_Click(object sender, EventArgs e) { textBoxExpression.Text += "*"; }
+        private void buttonSub_Click(object sender, EventArgs e) { textBoxExpression.Text += "-"; }
+        private void buttonAdd_Click(object sender, EventArgs e) { textBoxExpression.Text += "+"; }
+        private void buttonMod_Click(object sender, EventArgs e) { textBoxExpression.Text += "%"; }
 
+        /// <summary>
+        /// MR: вставляє значення пам'яті у вираз (якщо перед ним не стоїть цифра)
+        /// </summary>
         private void buttonMR_Click(object sender, EventArgs e)
         {
-            if (textBoxExpression.Text == "")
+            string text = textBoxExpression.Text;
+            if (text == "" || !isNumber(text[text.Length - 1]))
                 textBoxExpression.Text += memory.ToString();
-            else if (textBoxExpression.Text.Length > 0)
-            {
-                bool checkNumber = isNumber(textBoxExpression.Text.Substring(textBoxExpression.Text.Length - 1).FirstOrDefault());
-                if (checkNumber == false)
-                    textBoxExpression.Text += memory.ToString();
-            }
+
             label2.Text = "Memory";
             textBoxResult.Text = memory.ToString();
         }
 
+        /// <summary>
+        /// M+: обчислює вираз і додає результат до пам'яті з перевіркою на переповнення
+        /// </summary>
         private void buttonMPlus_Click(object sender, EventArgs e)
         {
             buttonEqual_Click(sender, e);
-            int checkResult = 0;
+
             if (result == "")
-                memory += 0;
-            else
+                return;
+
+            int checkResult;
+            // TryParse перетворює рядок на int і повертає false, якщо це не число (наприклад, текст помилки)
+            if (int.TryParse(result, out checkResult))
             {
-                bool isNumber = int.TryParse(result, out checkResult);
-                //TryParse переконвертовує введене стрінгове значення в Int32, та заодно перевіряє чи воно інтове, повертає
-                //true або false
-                if (isNumber == true)
-                {
-                    if (checkResult + memory >= int.MaxValue || checkResult + memory <= int.MinValue ||
-                         checkResult >= int.MaxValue || checkResult <= int.MinValue)
-                        MessageBox.Show(ErrorsExpression.ERROR_06);
-                    else
-                        memory += checkResult;
-                }
-                else MessageBox.Show($"Error code can't be written into memory!");
+                long sum = (long)memory + checkResult;
+                if (sum > int.MaxValue || sum < int.MinValue)
+                    MessageBox.Show(ErrorsExpression.ERROR_06);
+                else
+                    memory = (int)sum;
             }
+            else
+                MessageBox.Show("Error code can't be written into memory!");
         }
+
+        /// <summary>
+        /// MC: очищення пам'яті
+        /// </summary>
         private void buttonMC_Click(object sender, EventArgs e)
         {
             memory = 0;
             textBoxResult.Text = "";
         }
+
+        /// <summary>
+        /// "=": обчислення виразу через AnalaizerClass.Estimate()
+        /// </summary>
         private void buttonEqual_Click(object sender, EventArgs e)
         {
             label2.Text = "Result";
-            timercount = 0;
-            IstimeOut = false;
-            AnalaizerClass.expression = textBoxExpression.Text;
-            string results = AnalaizerClass.Estimate();
-            if (results.StartsWith("&"))
-            {
-                this.textBoxResult.ForeColor = Color.Red;
-                this.textBoxResult.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-                this.textBoxResult.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
 
+            // Прибираємо всі пробільні символи (пробіл, табуляція, нерозривний пробіл)
+            string text = new string(textBoxExpression.Text.Where(c => !char.IsWhiteSpace(c)).ToArray());
+
+            AnalaizerClass.expression = text;
+            string results = AnalaizerClass.Estimate();
+            bool isError = results.StartsWith("&");   // '&' на початку означає помилку
+
+            if (isError)
+            {
+                // Помилка: червоний дрібний шрифт
+                textBoxResult.ForeColor = Color.Red;
+                textBoxResult.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(204)));
+                textBoxResult.TextAlign = HorizontalAlignment.Left;
             }
             else
             {
-                this.textBoxResult.ForeColor = Color.Blue;
-                this.textBoxResult.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-                this.textBoxResult.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+                // Результат: синій жирний шрифт
+                textBoxResult.ForeColor = Color.Blue;
+                textBoxResult.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, ((byte)(204)));
+                textBoxResult.TextAlign = HorizontalAlignment.Right;
             }
-            textBoxResult.Text = results;
 
+            // Службовий символ '&' користувачу не показуємо
+            textBoxResult.Text = isError ? results.Substring(1) : results;
         }
+
+        /// <summary>
+        /// "(": якщо перед дужкою число або ')', автоматично додається множення: 2( → 2*(
+        /// </summary>
         private void buttonOpenBracket_Click(object sender, EventArgs e)
         {
-            IstimeOut = false;
-            if (textBoxExpression.Text != "")
-            {
-                char znak = textBoxExpression.Text.Substring(textBoxExpression.Text.Length - 1).FirstOrDefault();
-                bool isZnak = isNumber(znak);
-                if (isZnak == false)
-                    textBoxExpression.Text += "(";
-                else
-                    textBoxExpression.Text += "*(";
-            }
+            string text = textBoxExpression.Text;
+            if (text != "" && (isNumber(text[text.Length - 1]) || text[text.Length - 1] == ')'))
+                textBoxExpression.Text += "*(";
             else
                 textBoxExpression.Text += "(";
         }
@@ -242,138 +235,66 @@ namespace GraphInterface
         {
             textBoxExpression.Text += ")";
         }
+
+        /// <summary>
+        /// Backspace: видалення останнього символу
+        /// </summary>
         private void buttonBS_Click(object sender, EventArgs e)
         {
-            if (textBoxExpression.Text.Length == 1)
-            {
-                textBoxExpression.Text = "";
-            }
-            else if (textBoxExpression.Text.Length > 1)
-            {
+            if (textBoxExpression.Text.Length > 0)
                 textBoxExpression.Text = textBoxExpression.Text.Substring(0, textBoxExpression.Text.Length - 1);
-            }
         }
+
+        /// <summary>
+        /// C: очищення обох полів
+        /// </summary>
         private void buttonC_Click(object sender, EventArgs e)
         {
             textBoxExpression.Text = string.Empty;
             textBoxResult.Text = string.Empty;
         }
-        private void buttonMod_Click(object sender, EventArgs e)
-        {
-            textBoxExpression.Text += "%";
-        }
 
+        /// <summary>
+        /// Зміна тексту виразу: зайвий нуль на початку числа прибирається ("05" → "5")
+        /// </summary>
         private void textBoxExpression_TextChanged(object sender, EventArgs e)
         {
             expression = textBoxExpression.Text;
-            if (textBoxExpression.Text.Length > 1 && textBoxExpression.Text.StartsWith("0"))
-            {
-                textBoxExpression.Text = textBoxExpression.Text.Substring(1);
-            }
-
-            bool checkNumber = false;
-            foreach (char item in textBoxExpression.Text)
-            {
-                checkNumber = isNumber(item);
-            }
-            if (checkNumber == true || textBoxExpression.Text == "")
-            {
-                sign = ' ';
-            }
+            string text = textBoxExpression.Text;
+            if (text.Length > 1 && text[0] == '0' && isNumber(text[1]))
+                textBoxExpression.Text = text.Substring(1);
         }
+
+        /// <summary>
+        /// Натискання клавіші: фокус у поле виразу, Esc закриває програму
+        /// </summary>
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            // Initialize the flag to false.
             textBoxExpression.Focus();
-            nonNumberEntered = false;
-            if (e.KeyValue == (char)Keys.Escape)
-            {
-                this.Close();
-            }
-            if (e.KeyValue == (char)Keys.Enter)
-            {
-                textBoxExpression.Focus();
-                buttonEqual_Click(sender, e);
-            }
-            //If shift key was pressed, it's an alowed symbol.
-            if (Control.ModifierKeys == Keys.Shift)
-            {
-                if (e.KeyCode != Keys.Multiply &&
-                    e.KeyCode != Keys.Oemplus &&
-                    e.KeyCode != Keys.OemOpenBrackets &&
-                    e.KeyCode != Keys.OemCloseBrackets &&
-                    e.KeyCode != Keys.Add &&
-                    e.KeyCode != Keys.Oem102 &&
-                    e.KeyCode != Keys.Oem5
-                    )
-                {
-                    nonNumberEntered = false;
-                }
-                else nonNumberEntered = true;
-            }
-            // Determine whether the keystroke is a number from the top of the keyboard.
-            if (e.KeyCode < Keys.D0 || e.KeyCode > Keys.D9)
-            {
-                // Determine whether the keystroke is a number from the keypad.
-                if (e.KeyCode < Keys.NumPad0 || e.KeyCode > Keys.NumPad9)
-                {
-                    // Determine whether the keystroke is not backspace or operands
-                    if (e.KeyCode != Keys.Back &&
-                    e.KeyCode != Keys.OemMinus &&
-                    e.KeyCode != Keys.Divide &&
-                    e.KeyCode != Keys.OemBackslash &&
-                    e.KeyCode != Keys.Multiply &&
-                    e.KeyCode != Keys.Oemplus &&
-                    e.KeyCode != Keys.OemOpenBrackets &&
-                    e.KeyCode != Keys.OemCloseBrackets &&
-                    e.KeyCode != Keys.Add &&
-                    e.KeyCode != Keys.Oem102 &&
-                     e.KeyCode != Keys.Oem4 &&
-                     e.KeyCode != Keys.Oem5 &&
-                     e.KeyCode != Keys.OemQuestion
-                    )
-                    {
-                        // A non-numerical keystroke was pressed.
-                        // Set the flag to true and evaluate in KeyPress event.
-                        nonNumberEntered = true;
-                    }
-                    else nonNumberEntered = false;
-                }
-            }
+            if (e.KeyCode == Keys.Escape)
+                Close();
         }
+
         private void textBoxResult_TextChanged(object sender, EventArgs e)
         {
             result = textBoxResult.Text;
         }
+
+        /// <summary>
+        /// Фільтр клавіатури: дозволені лише цифри, + - * / % ( )
+        /// і службові клавіші (Backspace, Ctrl+C/V/A)
+        /// </summary>
         private void Form1_KeyPress(object sender, KeyPressEventArgs e)
         {
-            // Check for the flag being set in the KeyDown event.
-            if (nonNumberEntered == true)
-            {
-                // Stop the character from being entered into the control since it is non-numerical.
+            char c = e.KeyChar;
+            bool allowed = isNumber(c) || "+-*/%()".IndexOf(c) >= 0 || char.IsControl(c);
+            if (!allowed)
                 e.Handled = true;
-            }
         }
+
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (timercount < 3)
-            {
-                IstimeOut = false;
-                timercount++;
-                this.Text = timercount.ToString();
-            }
-            else if (timercount == 3)
-            {
-                IstimeOut = true;
-                timer1.Stop();
-                timercount = 0;
-            }
-            else
-            {
-                timer1.Stop();
-                timercount = 0;
-                IstimeOut = false;
-            }
+            timer1.Stop();
         }
     }
 }
